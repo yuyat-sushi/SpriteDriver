@@ -1,0 +1,51 @@
+;------------
+;	LEGIONS GBC EDITION
+;	by yuyat
+;	tab 8
+
+	INCLUDE "HARDWARE.INC"
+
+AdressLD: MACRO
+	ld	a,[\1]
+	ld	h,a
+	ld	a,[\1 + 1]
+	ld	l,a
+	ENDM
+
+SECTION "CALL HL",ROM0[$18]
+	jp			hl								;$18
+
+SECTION "V Blank",ROM0[$40]
+	reti
+SECTION "LCDC Status Interupt",ROM0[$48]
+	reti
+SECTION "Timer Interupt",ROM0[$50]
+	reti
+SECTION "Serial Interupt",ROM0[$58]
+	reti
+SECTION "Keypad Interupt",ROM0[$60]
+	reti
+SECTION "Org $100",ROM0[$100]
+	nop							; 起動直後 SP=$FFFE
+	jp		begin
+	NINTENDO_LOGO          			         	; Nintendo graphic logo
+
+;Rom Header Info
+;				 123456789abcdef
+	DB			"SHINOBI GB"            	; Game Name
+	DB			0,0,0,0,0               	; Padding to 15 characters
+	DB			$80                     	; 0 - MGB / $80 - Color compatible /
+	DB			0,0                     	; Game Maker Code
+	DB			0                       	; Game Unit Code
+	DB			CART_ROM_MBC5_RAM_BAT   	; Cart type
+	DB			CART_ROM_32M            	; ROM Size (in bits)
+	DB			CART_RAM_64K            	; RAM Size (in bits)
+	DB			0,1                     	; Maker ID
+	DB 			0                       	; Version=0
+	DB 			$00                     	; Complement check (important)
+	DW 			$0000                   	; Checksum (not important)
+
+	SECTION "Main Code",ROM0[$150]
+begin:
+main:
+	jp	main
