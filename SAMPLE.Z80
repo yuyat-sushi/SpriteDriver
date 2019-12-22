@@ -16,6 +16,7 @@ SECTION "CALL HL",ROM0[$18]
 	jp			hl								;$18
 
 SECTION "V Blank",ROM0[$40]
+	call		VblankMethod
 	reti
 SECTION "LCDC Status Interupt",ROM0[$48]
 	reti
@@ -26,20 +27,20 @@ SECTION "Serial Interupt",ROM0[$58]
 SECTION "Keypad Interupt",ROM0[$60]
 	reti
 SECTION "Org $100",ROM0[$100]
-	nop							; 起動直後 SP=$FFFE
+	nop							; ?????????? SP=$FFFE
 	jp		begin
 	NINTENDO_LOGO          			         	; Nintendo graphic logo
 
 ;Rom Header Info
 ;				 123456789abcdef
-	DB			"SHINOBI GB"            	; Game Name
+	DB			"SAMPLE"            	; Game Name
 	DB			0,0,0,0,0               	; Padding to 15 characters
 	DB			$80                     	; 0 - MGB / $80 - Color compatible /
 	DB			0,0                     	; Game Maker Code
 	DB			0                       	; Game Unit Code
-	DB			CART_ROM_MBC5_RAM_BAT   	; Cart type
-	DB			CART_ROM_32M            	; ROM Size (in bits)
-	DB			CART_RAM_64K            	; RAM Size (in bits)
+	DB			CART_ROM_MBC1_RAM   	; Cart type
+	DB			CART_ROM_256K            	; ROM Size (in bits)
+	DB			CART_RAM_NONE            	; RAM Size (in bits)
 	DB			0,1                     	; Maker ID
 	DB 			0                       	; Version=0
 	DB 			$00                     	; Complement check (important)
@@ -49,3 +50,32 @@ SECTION "Org $100",ROM0[$100]
 begin:
 main:
 	jp	main
+
+VblankMethod:
+	call	$FF80		;????????????????
+	call		ReadJoystick
+	ret
+
+	include "gb_routine.z80"
+	include "Sprite.z80"
+	include "SpriteData.z80"
+	include "GraphicData.z80"
+
+SECTION "Work RAM",WRAM0[$C000]
+OAM_BUFFER0	 			ds	160		;OAM????
+
+;?????????
+SP_ROMBank	ds	40	;??????????????(???1byte????2byte)
+SP_Adress	ds	80	
+SP_XPosition	ds	40	;X??
+SP_YPosition	ds	40	;Y??
+SP_Pattern	ds	40	;
+SP_Wait		ds	40	;????
+SP_EndPlay	ds	40	;??????? FF?????
+
+
+SECTION "HI-RAM",HRAM[$FF80]
+SPRITE_ROUTINE			ds	SpriteRoutineEnd - SpriteRoutine	;????????????
+
+_Pad				db				;????????
+_PadDebounce			db				;???????????

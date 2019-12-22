@@ -1,0 +1,11 @@
+;毎フレーム行う処理
+SpriteDraw:
+        ret 
+
+;スプライト追加
+SpriteAdd:
+        ret 
+
+;スプライト削除
+SpriteDelete:
+        ret
