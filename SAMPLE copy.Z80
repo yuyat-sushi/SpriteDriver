@@ -27,7 +27,7 @@ SECTION "Serial Interupt",ROM0[$58]
 SECTION "Keypad Interupt",ROM0[$60]
 	reti
 SECTION "Org $100",ROM0[$100]
-	nop							; ????? SP=$FFFE
+	nop							; ?????????? SP=$FFFE
 	jp		begin
 	NINTENDO_LOGO          			         	; Nintendo graphic logo
 
@@ -48,51 +48,7 @@ SECTION "Org $100",ROM0[$100]
 
 	SECTION "Main Code",ROM0[$150]
 begin:
-	di
-	call	Initialize
-	call		ScreenOff
-	ld	bc,40*16
-	ld	de,_VRAM
-	ld	hl,TileData
-	call	LDIR
-	call		ScreenOnVB
-	ei
-	ld	b,0
-	ld	c,0
-	ld	d,8
-	ld	e,16
-	ld	hl,Player_Stand
-	call	SpriteAdd
-	ld	b,1
-	ld	c,0
-	ld	d,32
-	ld	e,16
-	ld	hl,Player_Stand
-	call	SpriteAdd
-	ld	b,2
-	ld	c,0
-	ld	d,56
-	ld	e,16
-	ld	hl,Player_Stand
-	call	SpriteAdd
-	ld	b,3
-	ld	c,0
-	ld	d,8
-	ld	e,40
-	ld	hl,Player_Stand
-	call	SpriteAdd
-	ld	b,4
-	ld	c,0
-	ld	d,32
-	ld	e,40
-	ld	hl,Player_Stand
-	call	SpriteAdd
 main:
-	ldh	a,[rLY]
-	cp	2
-	jr	nc,main
-	call	SpriteDraw
-	halt
 	jp	main
 
 VblankMethod:
@@ -102,25 +58,23 @@ VblankMethod:
 
 	include "gb_routine.z80"
 	include "Sprite.z80"
-
 	include "SpriteData.z80"
 	include "GraphicData.z80"
 
 SECTION "Work RAM",WRAM0[$C000]
 OAM_BUFFER0	 			ds	160		;OAMバッファ
-Seed					db			;ランダムシード
-Decimal					ds	5		;5桁のBCDの返り値
 
 ;スプライトグループ管理変数
 SECTION "SpriteGroup",WRAM0[$C100]
-SP_ROMBank	ds	16	;指定アニメデータアドレス(バンク1byteアドレス2byte)
-SP_Adress	ds	32
+SP_ROMBank	ds	40	;指定アニメデータアドレス(バンク1byteアドレス2byte)
+SP_Adress	ds	80	
+SP_XPosition	ds	40	;X座標
+SP_YPosition	ds	40	;Y座標
+SP_Pattern	ds	40	;
+SP_Wait		ds	40	;ウェイト数
+SP_EndPlay	ds	40	;再生終了したか？ FFで再生終了
 
-SP_XPosition	ds	16	;X座標
-SP_YPosition	ds	16	;Y座標
-SP_Pattern	ds	16	;基準となるスプライトパターン
-SP_Wait		ds	16	;ウェイト数
-SP_EndPlay	ds	16	;再生終了したか？ FFで再生終了
+SP_GroupCount	db		;グループの数
 
 SECTION "HI-RAM",HRAM[$FF80]
 SPRITE_ROUTINE			ds	SpriteRoutineEnd - SpriteRoutine	;スプライト描画用ルーチン

@@ -1,11 +1,227 @@
 ;毎フレーム行う処理
+;b = スプライトグループ数
+;c = スプライトグループ内のスプライト数
+;de = 読み込んでいるスプライトデータ
 SpriteDraw:
-        ret 
+        ld      b,0
+        ;スプライト
+        ld      hl,OAM_BUFFER0
+.grouploop:
+        push    hl
+        ;読み込みアニメデータ指定
+        ld      hl,SP_Adress
+        ld      a,l
+        add     a,b
+        add     a,b
+        ld      l,a
+        ld      a,[hl+]
+        ld      d,a
+        ld      a,[hl]
+        ld      e,a
+        pop     hl
+        ld      a,d
+        cp      $00     ;アニメデータが指定されていない場合、スプライト処理をスキップする
+        jr      z,.skipspriteloop
+        ;操作スプライト数を読み込み、指定
+        ld      a,[de]
+        ld      c,a
+        inc     de
+        inc     de
+        inc     de
+        inc     de
+.spriteloop:
+        ;スプライト書き込み処理
+        ;Y座標
+        push    hl
+        ld      hl,SP_YPosition
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,[de]
+        add     a,[hl]
+        pop     hl
+        ld      [hl+],a
+        inc     de
+        ;X座標
+        push    hl
+        ld      hl,SP_XPosition
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,[de]
+        add     a,[hl]
+        pop     hl
+        ld      [hl+],a
+        inc     de
+        ;パターン
+        push    hl
+        ld      hl,SP_Pattern
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,[de]
+        add     a,[hl]
+        pop     hl
+        ld      [hl+],a
+        inc     de
+        ;アトリビュート
+        ld      a,[de]
+        ld      [hl+],a
+        inc     de
+        ;1スプライトの処理終了
+        dec     c
+        jr      nz,.spriteloop
+        ;アニメウェイト操作
+        push    hl
+        push    de
+        ld      hl,SP_Wait
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,[hl]
+        cp      0
+        jr      z,.EndPlayAnim
+        dec     [hl]
+        jr      nz,.EndWait
+.EndPlayAnim
+        ;アニメ再生終了時、次のアニメアドレスにする
+        ;読み込みアニメデータ変更
+        ld      hl,SP_Adress
+        ld      a,l
+        add     a,b
+        add     a,b
+        ld      l,a
+        ld      a,[hl+]
+        ld      d,a
+        ld      a,[hl-]
+        ld      e,a
+        inc     de
+        inc     de
+        ld      a,[de]
+        cp      $FF
+        jr      nz,.NewAnimAdress
+        ;FFの場合、再生終了
+        ld      hl,SP_EndPlay
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,$FF
+        ld      [hl],a
+        jr      .EndWait
+.NewAnimAdress:
+        ld      [hl+],a
+        inc     de
+        ld      a,[de]
+        ld      [hl],a
+        dec     de
+        dec     de
+        ld      hl,SP_Wait
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,[de]
+        ld      [hl],a         
+.EndWait:
+        pop     de
+        pop     hl
+.skipspriteloop:
+        inc     b
+        ld      a,b
+        cp      16
+        jp      nz,.grouploop
+        ret
 
 ;スプライト追加
+;b = 番号
+;c = パターン
+;d = X
+;e = Y
+;hl = アニメデータ
 SpriteAdd:
-        ret 
+        push    de
+        ;アニメデータをdeに
+        ld      d,h
+        ld      e,l
+        ;アニメアドレスの代入
+        ld      hl,SP_Adress
+        ld      a,l
+        add     a,b
+        add     a,b
+        ld      l,a
+        ld      a,d
+        ld      [hl+],a
+        ld      a,e
+        ld      [hl],a
+        ;アニメウェイトの代入
+        ld      hl,SP_Wait
+        ld      a,l
+        add     a,b
+        ld      l,a
+        inc     de
+        ld      a,[de]
+        ld      [hl],a
+        pop     de
+        ;X座標の代入
+        ld      hl,SP_XPosition
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,d
+        ld      [hl],a
+        ;Y座標の代入
+        ld      hl,SP_YPosition
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,e
+        ld      [hl],a
+        ;基準となるパターン番号の代入
+        ld      hl,SP_Pattern
+        ld      a,l
+        add     a,b
+        ld      l,a
+        ld      a,c
+        ld      [hl],a
+        ret
+
 
 ;スプライト削除
+;b = 番号
 SpriteDelete:
+        ld      hl,SP_Adress
+        ld      a,l
+        add     a,b
+        add     a,b
+        ld      l,a
+        xor     a
+        ld      [hl+],a
+        ld      [hl],a
+
+        ld      hl,SP_Wait
+        ld      a,l
+        add     a,b
+        ld      l,a
+        xor     a
+        ld      [hl],a
+
+        ld      hl,SP_XPosition
+        ld      a,l
+        add     a,b
+        ld      l,a
+        xor     a
+        ld      [hl],a
+
+        ld      hl,SP_YPosition
+        ld      a,l
+        add     a,b
+        ld      l,a
+        xor     a
+        ld      [hl],a
+
+        ld      hl,SP_Pattern
+        ld      a,l
+        add     a,b
+        ld      l,a
+        xor     a
+        ld      [hl],a   
         ret
